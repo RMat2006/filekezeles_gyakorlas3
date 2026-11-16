@@ -18,8 +18,70 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+//*JSON beolvas
+const ReadJSONFile = async(filePath)=>{
+    try{
+        const raw = await fs.readFile(filePath,'utf8');
+        return JSON.parse(raw);
+    }catch(error){
+        throw new Error("JSON olvasási hiba!");
+    }
+};
+
+
+
 //!Endpoints:
 //?GET /api/test
+//*JSON filebeolvas
+router.get('/getallstat', async (request,response)=>{
+    try{
+        const utvonal = path.join(__dirname, "../files/statisztika.json");
+        const content = await ReadJSONFile(utvonal);
+
+        response.status(200).json({
+            success:true,
+            content: content
+        })
+    }catch(error){
+        response.status(500).json({
+            success:true
+        })
+    }
+});
+
+//*Telepulés szerint visszaad
+router.get('/getstat/:telepaz', async (request,response)=>{
+    try{
+        let telepules = request.params.telepaz
+        let utvonal = path.join(__dirname, '../files/statisztika.json')
+        let content = await ReadJSONFile(utvonal)
+        let tomb = [];
+        tomb = content.telepules;
+        let j=0;
+        while(j<tomb.length && tomb[j].telepaz!=telepules){
+            j++;
+        }
+        if(j<tomb.length){
+            response.status(200).json({
+                success:true,
+                adatok: tomb[j]
+            })
+
+        }else{
+            response.status(200).json({
+                success:false,
+                message: "Nincs ilyen település!"
+            });
+        
+        }
+        }catch(error){
+            response.status(500).json({
+                success: false
+            })
+        }
+    
+});
+
 router.get('/test', (request, response) => {
     response.status(200).json({
         message: 'Ez a végpont működik.'
